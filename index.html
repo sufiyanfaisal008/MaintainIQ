@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaintainIQ - Keep Safe, Clean & Compliant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                            950: '#042f2e',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-full font-sans antialiased text-slate-800">
+
+    <!-- Full screen loading/state notification modal -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600 mb-4"></div>
+            <h3 id="loadingTitle" class="text-lg font-bold text-slate-900 mb-1">Connecting to MaintainIQ...</h3>
+            <p id="loadingMessage" class="text-sm text-slate-500 text-center">Synchronizing your food safety dashboard with the cloud.</p>
+        </div>
+    </div>
+
+    <!-- Overlay toast messages that replace basic alerts -->
+    <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-120%] opacity-0 transition-all duration-300 max-w-md w-full">
+        <div id="toastContent" class="flex items-start gap-3 p-4 bg-white border-l-4 rounded-r-xl shadow-xl">
+            <div id="toastIcon" class="text-xl"></div>
+            <div class="flex-1">
+                <h4 id="toastTitle" class="font-bold text-sm text-slate-900">Notification</h4>
+                <p id="toastMessage" class="text-xs text-slate-600 mt-0.5">Your action has been recorded successfully.</p>
+            </div>
+            <button onclick="hideToast()" class="text-slate-400 hover:text-slate-600 text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- View Router Wrapper -->
+    <div id="appContainer" class="h-full">
+
+        <!-- ================= AUTH: LOGIN VIEW ================= -->
+        <section id="loginView" class="hidden min-h-screen flex flex-col md:flex-row bg-slate-50">
+            <!-- Left Panel: Graphic & Benefits -->
+            <div class="hidden md:flex md:w-1/2 bg-gradient-to-tr from-primary-950 via-primary-900 to-primary-800 text-white p-16 flex-col justify-between relative overflow-hidden min-h-screen">
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-primary-600/20 rounded-full blur-2xl"></div>
+                <div class="absolute -left-20 -top-20 w-80 h-80 bg-primary-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20 shadow-inner">
+                        <svg class="h-8 w-8 text-primary-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tight">Maintain<span class="text-primary-400">IQ</span></span>
+                </div>
+
+                <div class="my-auto max-w-lg space-y-6">
+                    <h1 class="text-4xl lg:text-5xl font-black leading-tight text-white">Ditch the pen & paper clipboard.</h1>
+                    <p class="text-lg text-primary-100/90 leading-relaxed">
+                        Standardize food safety, digital checklists, preventive maintenance, and work orders across all your restaurant locations like a pro.
+                    </p>
+                    <div class="space-y-4 pt-4">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-primary-500/20 p-1 rounded-full text-primary-300 mt-1"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                            <div><strong class="text-white block">Save up to 10 hours/week</strong> <span class="text-primary-200 text-sm">Automate Line checks & daily temperature logging</span></div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="bg-primary-500/20 p-1 rounded-full text-primary-300 mt-1"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                            <div><strong class="text-white block">Prevent unexpected breakdown costs</strong> <span class="text-primary-200 text-sm">Keep routine schedules on equipment at your fingertips</span></div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="bg-primary-500/20 p-1 rounded-full text-primary-300 mt-1"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                            <div><strong class="text-white block">100% Health Department Compliant</strong> <span class="text-primary-200 text-sm">Log records electronically and share reports instantly</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-primary-300 text-sm flex justify-between">
+                    <span>Accountability Made Easy</span>
+                    <span>v2.8.5</span>
+                </div>
+            </div>
+
+            <!-- Right Panel: Core Login Form -->
+            <div class="w-full md:w-1/2 bg-slate-50 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-20 min-h-screen">
+                <div class="md:hidden flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-primary-600 p-2 rounded-lg text-white">
+                            <i class="fa-solid fa-clipboard-check text-lg"></i>
+                        </div>
+                        <span class="text-xl font-extrabold text-slate-900">Maintain<span class="text-primary-600">IQ</span></span>
+                    </div>
+                    <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">App Console</span>
+                </div>
+
+                <div class="max-w-md w-full mx-auto space-y-8 bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Log In</h2>
+                        <p class="text-slate-500 mt-2 text-sm">Access your operations control panel.</p>
+                    </div>
+
+                    <form id="formLogin" class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Email Address or Mobile #</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-user text-sm"></i>
+                                </div>
+                                <input type="text" id="loginMobile" required placeholder="e.g. owner@example.com or 17459228595" class="block w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-150 text-sm" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Password</label>
+                                <a href="#" onclick="showForgotPassword()" class="text-xs text-primary-600 hover:text-primary-700 font-medium">Forgot password?</a>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-lock text-sm"></i>
+                                </div>
+                                <input type="password" id="loginPassword" required placeholder="••••••••" class="block w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-150 text-sm" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-primary-600/10 hover:shadow-primary-600/20 transition-all duration-200 transform active:scale-[0.99] text-sm">
+                            Log In <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </form>
+
+                    <div class="text-center pt-2">
+                        <p class="text-sm text-slate-600">Don't have an account? <a href="#" onclick="toggleAuthView('register')" class="text-primary-600 hover:text-primary-700 font-semibold underline">Create Account</a></p>
+                    </div>
+                </div>
+
+                <div class="text-center text-xs text-slate-400 pt-8 mt-6">
+                    Copyright © 2018-2026 by Maintain IQ, Inc. All rights reserved.
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= AUTH: CREATE ACCOUNT VIEW ================= -->
+        <section id="registerView" class="hidden min-h-screen flex flex-col md:flex-row bg-slate-50">
+            <!-- Left Panel (Graphic & Benefits) with updated deep-colored high-contrast background -->
+            <div class="hidden md:flex md:w-1/2 bg-gradient-to-tr from-primary-950 via-primary-900 to-primary-800 text-white p-16 flex-col justify-between relative overflow-hidden min-h-screen">
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-primary-600/20 rounded-full blur-2xl"></div>
+                <div class="absolute -left-20 -top-20 w-80 h-80 bg-primary-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20 shadow-inner">
+                        <svg class="h-8 w-8 text-primary-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tight text-white">Maintain<span class="text-primary-400">IQ</span></span>
+                </div>
+
+                <div class="my-auto max-w-lg space-y-6">
+                    <h1 class="text-3xl lg:text-4xl font-black leading-tight text-white">Join multi-unit operators growing with MaintainIQ.</h1>
+                    <p class="text-base text-primary-100/90 leading-relaxed">
+                        Setting up takes less than 3 minutes. Standardize your operations, monitor line status, and track food handler certifications from a unified environment.
+                    </p>
+                    <div class="space-y-4 pt-2 text-sm">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-check text-primary-400 text-lg"></i> 
+                            <span class="text-white">Free 14-day premium trial with unlimited locations</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-check text-primary-400 text-lg"></i> 
+                            <span class="text-white">No card details required during setup</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-check text-primary-400 text-lg"></i> 
+                            <span class="text-white">Concierge data seeding automatically turned on</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-primary-300 text-sm flex justify-between">
+                    <span>Accountability Made Easy</span>
+                    <span>v2.8.5</span>
+                </div>
+            </div>
+
+            <!-- Right Panel: Core Registration Form with responsive min-height and viewport padding bottom -->
+            <div class="w-full md:w-1/2 bg-slate-50 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-16 xl:px-20 min-h-screen">
+                <div class="md:hidden flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-primary-600 p-2 rounded-lg text-white">
+                            <i class="fa-solid fa-clipboard-check text-lg"></i>
+                        </div>
+                        <span class="text-xl font-extrabold text-slate-900">Maintain<span class="text-primary-600">IQ</span></span>
+                    </div>
+                    <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Create Account</span>
+                </div>
+
+                <!-- Registration Card Box with beautiful bottom spacing padding to avoid truncation -->
+                <div class="max-w-xl w-full mx-auto bg-white border border-slate-200 rounded-2xl shadow-xl p-6 sm:p-10 space-y-6 my-auto mb-8">
+                    <div>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Create Account</h2>
+                        <p class="text-slate-500 mt-2 text-sm">Begin standardizing your store compliance program today.</p>
+                    </div>
+
+                    <form id="formRegister" class="space-y-5">
+                        <!-- Full Name Field -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Full Name</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-user text-sm"></i>
+                                </div>
+                                <input type="text" id="regName" required placeholder="John Doe" class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all text-slate-900 font-medium" />
+                            </div>
+                        </div>
+
+                        <!-- Email Group (Two Column Row for Desktop) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Email Address</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-envelope text-sm"></i>
+                                    </div>
+                                    <input type="email" id="regEmail" required placeholder="john@example.com" class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all text-slate-900 font-medium" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Confirm Email</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-envelope-circle-check text-sm"></i>
+                                    </div>
+                                    <input type="email" id="regConfirmEmail" required placeholder="john@example.com" class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all text-slate-900 font-medium" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mobile / Phone number Field -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Mobile # / Phone Number</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-phone text-sm"></i>
+                                </div>
+                                <input type="tel" id="regMobile" required placeholder="e.g. 17459228595" class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all text-slate-900 font-medium" />
+                            </div>
+                        </div>
+
+                        <!-- Password Group (Two Column Row for Desktop) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Password</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-lock text-sm"></i>
+                                    </div>
+                                    <input type="password" id="regPassword" required placeholder="Min 6 characters" class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all text-slate-900 font-medium" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Confirm Password</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-key text-sm"></i>
+                                    </div>
+                                    <input type="password" id="regConfirmPassword" required placeholder="Confirm" class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all text-slate-900 font-medium" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms Checkbox with distinct visual presence -->
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                            <input type="checkbox" id="regTerms" required class="mt-1 h-4.5 w-4.5 accent-primary-600 rounded cursor-pointer" />
+                            <label for="regTerms" class="text-xs text-slate-600 leading-relaxed cursor-pointer select-none">
+                                I accept the MaintainIQ <a href="#" class="text-primary-600 underline font-semibold hover:text-primary-700">Terms of Service</a> and authorize electronic storage of operational records.
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg shadow-primary-600/20 transition-all duration-200 transform active:scale-[0.99] text-sm mt-2">
+                            Register & Start Free Trial <i class="fa-solid fa-play ml-1"></i>
+                        </button>
+                    </form>
+
+                    <div class="text-center pt-4 border-t border-slate-150">
+                        <p class="text-sm text-slate-600">Already registered? <a href="#" onclick="toggleAuthView('login')" class="text-primary-600 hover:text-primary-700 font-bold underline">Log In Instead</a></p>
+                    </div>
+                </div>
+
+                <div class="text-center text-xs text-slate-400 mt-2 pb-6">
+                    Copyright © 2018-2026 by Maintain IQ, Inc. All rights reserved.
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MAIN CORE: DASHBOARD WORKSPACE ================= -->
+        <main id="dashboardWorkspace" class="hidden h-full flex flex-col md:flex-row overflow-hidden">
+            
+            <!-- Left Navigation (Responsive Panel) -->
+            <aside class="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 flex-shrink-0 border-r border-slate-800">
+                <!-- Branding Header -->
+                <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="bg-primary-500 text-slate-900 p-2 rounded-xl flex items-center justify-center font-black">
+                            <i class="fa-solid fa-square-poll-vertical text-lg"></i>
+                        </div>
+                        <span class="text-lg font-black text-white tracking-tight">Maintain<span class="text-primary-400">IQ</span></span>
+                    </div>
+                    <span class="text-[10px] bg-slate-800 text-primary-400 px-2 py-0.5 rounded font-mono font-bold uppercase">Pro</span>
+                </div>
+
+                <!-- Active Location Selector Box -->
+                <div class="p-4 bg-slate-950/60 border-b border-slate-800/80">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active Location</label>
+                    <div class="relative">
+                        <select id="locationSelector" onchange="handleLocationChange()" class="w-full bg-slate-900 border border-slate-700 text-slate-100 text-xs rounded-lg px-3 py-2 outline-none appearance-none cursor-pointer focus:border-primary-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </div>
+                    </div>
+                    <button onclick="openAddLocationModal()" class="mt-2 text-[11px] text-primary-400 hover:text-primary-300 flex items-center gap-1 font-semibold transition-colors duration-150">
+                        <i class="fa-solid fa-plus-circle"></i> Add Location
+                    </button>
+                </div>
+
+                <!-- Navigation List Items -->
+                <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                    <a href="#" onclick="switchTab('home')" id="nav-home" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard Home
+                    </a>
+                    <a href="#" onclick="switchTab('checklists')" id="nav-checklists" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i> Digital Checklists
+                    </a>
+                    <a href="#" onclick="switchTab('temps')" id="nav-temps" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-temperature-half w-5 text-center"></i> Food Safety Logs
+                    </a>
+                    <a href="#" onclick="switchTab('pm')" id="nav-pm" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-screwdriver-wrench w-5 text-center"></i> Preventive Maint.
+                    </a>
+                    <a href="#" onclick="switchTab('repairs')" id="nav-repairs" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-receipt w-5 text-center"></i> Work Orders (CMMS)
+                    </a>
+                    <a href="#" onclick="switchTab('compliance')" id="nav-compliance" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-id-card w-5 text-center"></i> Certifications & Permits
+                    </a>
+                </nav>
+
+                <!-- Footer / Profile Summary -->
+                <div class="p-4 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div class="h-9 w-9 rounded-full bg-primary-600 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+                            <span id="sidebarUserInitials">OP</span>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p id="sidebarUserName" class="text-xs font-semibold text-white truncate">Operator Name</p>
+                            <p id="sidebarUserCompany" class="text-[10px] text-slate-500 truncate">Store Owner</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" title="Sign Out" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Workspace Content Canvas (Right Panel) -->
+            <div class="flex-1 flex flex-col h-full overflow-hidden">
+                <!-- Top Toolbar Header -->
+                <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <!-- Mobile Hamburger Button -->
+                        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </button>
+                        <!-- Mobile Branding Representation -->
+                        <div class="md:hidden flex items-center gap-1 text-slate-950 font-black text-sm">
+                            <span class="text-primary-600"><i class="fa-solid fa-square-poll-vertical mr-1"></i>M</span>IQ
+                        </div>
+                        <h2 id="workspaceTitle" class="text-lg font-bold text-slate-900 hidden sm:block">Dashboard Home</h2>
+                    </div>
+
+                    <!-- Header Actions -->
+                    <div class="flex items-center gap-4">
+                        <div id="liveIndicator" class="flex items-center gap-1.5 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+                            <span class="h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
+                            <span class="text-[10px] text-teal-800 font-bold font-mono">LIVE CLOUD REPLICA</span>
+                        </div>
+                        
+                        <div class="text-right text-xs hidden lg:block">
+                            <p id="currentLocalDate" class="font-semibold text-slate-700">July 11, 2026</p>
+                            <p class="text-slate-400 text-[10px]">Operations Clock</p>
+                        </div>
+
+                        <!-- Quick actions button -->
+                        <button onclick="triggerQuickAction()" class="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-150 flex items-center gap-1">
+                            <i class="fa-solid fa-plus-circle"></i> Quick Entry
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Mobile Navigation Slide-Over -->
+                <div id="mobileSidebar" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm hidden flex">
+                    <div class="w-64 bg-slate-950 flex flex-col h-full text-slate-300">
+                        <div class="p-5 border-b border-slate-900 flex items-center justify-between">
+                            <span class="text-lg font-black text-white">Maintain<span class="text-primary-400">IQ</span></span>
+                            <button onclick="toggleMobileSidebar()" class="text-slate-400 hover:text-white">
+                                <i class="fa-solid fa-xmark text-lg"></i>
+                            </button>
+                        </div>
+                        <!-- Active Location Box -->
+                        <div class="p-4 bg-slate-900">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active Location</label>
+                            <select id="mobileLocationSelector" onchange="handleLocationChange()" class="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-lg px-3 py-2 outline-none appearance-none cursor-pointer focus:border-primary-500">
+                                <!-- Synchronized with desktop location selector -->
+                            </select>
+                        </div>
+                        <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+                            <a href="#" onclick="switchTab('home')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Dashboard Home</a>
+                            <a href="#" onclick="switchTab('checklists')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Digital Checklists</a>
+                            <a href="#" onclick="switchTab('temps')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Food Safety Logs</a>
+                            <a href="#" onclick="switchTab('pm')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Preventive Maint.</a>
+                            <a href="#" onclick="switchTab('repairs')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Work Orders</a>
+                            <a href="#" onclick="switchTab('compliance')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Certifications</a>
+                        </nav>
+                        <div class="p-4 border-t border-slate-900 bg-slate-900 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center font-bold text-white text-xs">U</div>
+                                <p id="mobileUserName" class="text-xs font-semibold text-white truncate">User</p>
+                            </div>
+                            <button onclick="handleLogout()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-right-from-bracket"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Workspace Canvas -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 relative">
+
+                    <!-- TAB: HOME -->
+                    <div id="tab-home" class="tab-pane space-y-6">
+                        <!-- Stat Highlights Block -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Checklist Completion Widget -->
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Checklists Logged</span>
+                                    <span id="metricChecklists" class="text-3xl font-black text-slate-800">0/0</span>
+                                    <span class="text-[11px] text-emerald-600 block"><i class="fa-solid fa-caret-up mr-0.5"></i> Daily operations active</span>
+                                </div>
+                                <div class="p-3 bg-teal-50 text-teal-600 rounded-xl"><i class="fa-solid fa-list-check text-xl"></i></div>
+                            </div>
+                            <!-- Food Temperature Line Checks -->
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Temp Line Checks</span>
+                                    <span id="metricTemps" class="text-3xl font-black text-slate-800">0/0</span>
+                                    <span id="metricTempsWarning" class="text-[11px] text-slate-400 block">All lines secured</span>
+                                </div>
+                                <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i class="fa-solid fa-temperature-half text-xl"></i></div>
+                            </div>
+                            <!-- Overdue PM Tasks -->
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Overdue Maint.</span>
+                                    <span id="metricPM" class="text-3xl font-black text-slate-800">0</span>
+                                    <span class="text-[11px] text-amber-600 block"><i class="fa-solid fa-triangle-exclamation mr-0.5"></i> Action recommended</span>
+                                </div>
+                                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-circle-exclamation text-xl"></i></div>
+                            </div>
+                            <!-- Active Work Orders -->
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Active Work Orders</span>
+                                    <span id="metricWorkOrders" class="text-3xl font-black text-slate-800">0</span>
+                                    <span class="text-[11px] text-slate-400 block">Open vendor issues</span>
+                                </div>
+                                <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i class="fa-solid fa-envelope-open text-xl"></i></div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Operations and Compliance Meter -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left: Operations & Compliance score meter -->
+                            <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-base font-bold text-slate-900">Compliance & Accountability</h3>
+                                        <p class="text-xs text-slate-500">Live operational safety score for your restaurant.</p>
+                                    </div>
+                                    <span class="text-xs bg-primary-50 text-primary-700 font-bold px-2.5 py-1 rounded-lg">Real-time stats</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                                    <div class="flex flex-col items-center py-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <!-- Custom SVG Radial Dial -->
+                                        <div class="relative flex items-center justify-center">
+                                            <svg class="w-32 h-32 transform -rotate-90">
+                                                <circle cx="64" cy="64" r="54" stroke="currentColor" class="text-slate-200" stroke-width="10" fill="transparent"/>
+                                                <circle cx="64" cy="64" r="54" stroke="currentColor" id="radialProgressCircle" class="text-primary-600 transition-all duration-500" stroke-width="10" stroke-dasharray="339.29" stroke-dashoffset="101.7" fill="transparent" stroke-linecap="round"/>
+                                            </svg>
+                                            <span id="complianceScorePercent" class="absolute text-2xl font-black text-slate-800">70%</span>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Operational Health Index</span>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                                <span>Daily Checklist Progress</span>
+                                                <span id="checklistProgressText">70%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                                <div id="checklistProgressBar" class="bg-teal-500 h-2 rounded-full transition-all duration-300" style="width: 70%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                                <span>Temperature Lines Secured</span>
+                                                <span id="tempProgressText">90%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                                <div id="tempProgressBar" class="bg-cyan-500 h-2 rounded-full transition-all duration-300" style="width: 90%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                                <span>Scheduled Maintenance Complete</span>
+                                                <span id="pmProgressText">50%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                                <div id="pmProgressBar" class="bg-amber-500 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Rapid Entry shortcuts -->
+                            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                                <div class="space-y-3">
+                                    <h3 class="text-base font-bold text-slate-900">Operations Shortcut</h3>
+                                    <p class="text-xs text-slate-500">Record values directly during busy shifts.</p>
+                                    
+                                    <button onclick="switchTab('temps')" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-100 hover:border-primary-200 transition-all text-left">
+                                        <div class="flex items-center gap-3">
+                                            <div class="p-2 bg-primary-100 text-primary-700 rounded-lg text-sm"><i class="fa-solid fa-temperature-three-quarters"></i></div>
+                                            <div>
+                                                <span class="text-xs font-bold text-slate-800 block">Record Line Temperature</span>
+                                                <span class="text-[10px] text-slate-400">Walk-in or prep table temp checks</span>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                                    </button>
+
+                                    <button onclick="switchTab('repairs')" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-100 hover:border-primary-200 transition-all text-left">
+                                        <div class="flex items-center gap-3">
+                                            <div class="p-2 bg-rose-100 text-rose-700 rounded-lg text-sm"><i class="fa-solid fa-hammer"></i></div>
+                                            <div>
+                                                <span class="text-xs font-bold text-slate-800 block">File Work Order Ticket</span>
+                                                <span class="text-[10px] text-slate-400">Report broken hardware / cooling leaks</span>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                                    </button>
+                                </div>
+                                <div class="pt-4 border-t border-slate-100 mt-4 text-[11px] text-slate-400 text-center">
+                                    MaintainIQ Operational Control Unit
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Critical Certifications Expiry Alert Panel -->
+                        <div id="complianceNoticePanel" class="bg-amber-50 rounded-2xl p-5 border border-amber-200/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="flex gap-3">
+                                <div class="p-2.5 bg-amber-100 text-amber-800 rounded-xl mt-0.5 sm:mt-0"><i class="fa-solid fa-bell text-lg"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-900">Upcoming Permit & License Expansions</h4>
+                                    <p class="text-xs text-slate-600 mt-0.5">Some team member food handler cards require renewal. Track status in the compliance tab.</p>
+                                </div>
+                            </div>
+                            <button onclick="switchTab('compliance')" class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all">
+                                Update Certifications
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB: DIGITAL CHECKLISTS -->
+                    <div id="tab-checklists" class="tab-pane space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Standardized Digital Checklists</h3>
+                                <p class="text-xs text-slate-500">Ensure consistency across shifts, opening and closing procedures.</p>
+                            </div>
+                            <button onclick="openAddChecklistModal()" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-plus-circle"></i> Add Task Item
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left columns: Checklist Category Lists -->
+                            <div class="lg:col-span-2 space-y-4">
+                                <!-- Opening Checklist -->
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-sun text-amber-400"></i>
+                                            <h4 class="font-bold text-sm">Opening Shift Checklist</h4>
+                                        </div>
+                                        <span id="openingProgressCount" class="text-xs bg-slate-800 text-primary-400 px-2 py-0.5 rounded font-bold font-mono">0/0</span>
+                                    </div>
+                                    <div class="p-2 divide-y divide-slate-100" id="checklistOpeningContainer">
+                                        <!-- Dynamic checklist items -->
+                                    </div>
+                                </div>
+
+                                <!-- Daily Cleaning Checklist -->
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-primary-300"></i>
+                                            <h4 class="font-bold text-sm">Cleaning & Sanitization Tasks</h4>
+                                        </div>
+                                        <span id="cleaningProgressCount" class="text-xs bg-slate-800 text-primary-400 px-2 py-0.5 rounded font-bold font-mono">0/0</span>
+                                    </div>
+                                    <div class="p-2 divide-y divide-slate-100" id="checklistCleaningContainer">
+                                        <!-- Dynamic checklist items -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right column: Accountability Summary Card -->
+                            <div class="space-y-6">
+                                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-sm text-slate-900">Checklist Summary</h4>
+                                    <div class="p-4 bg-slate-50 rounded-xl space-y-3">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">Total Shifts Tasks:</span>
+                                            <span id="checklistSummaryTotal" class="font-bold text-slate-800">0 Items</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">Completed Logs:</span>
+                                            <span id="checklistSummaryCompleted" class="font-bold text-emerald-600">0 Items</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">Remaining Shifts Tasks:</span>
+                                            <span id="checklistSummaryRemaining" class="font-bold text-amber-600">0 Items</span>
+                                        </div>
+                                    </div>
+                                    <button onclick="resetChecklistData()" class="w-full border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 text-xs font-bold py-2 px-3 rounded-xl transition-all">
+                                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset Shift Checklist Progress
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: TEMPERATURE LOGS -->
+                    <div id="tab-temps" class="tab-pane space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Food Safety Line Checks</h3>
+                                <p class="text-xs text-slate-500">Log temperature and record checks. Safe zones: Freezers (-10 to 0°F), Chillers (33 to 40°F).</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Temperature logging input area -->
+                            <div class="lg:col-span-1 space-y-4">
+                                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-sm text-slate-900">Log New Temperature</h4>
+                                    <form id="formAddTempLog" class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Equipment Name</label>
+                                            <select id="tempEquipment" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm">
+                                                <option value="Walk-In Chiller">Walk-In Chiller (33°F - 40°F)</option>
+                                                <option value="Line Freezer">Line Freezer (-10°F - 0°F)</option>
+                                                <option value="Prep Table Cooler">Prep Table Cooler (33°F - 40°F)</option>
+                                                <option value="Hot Holding Cabinet">Hot Holding Cabinet (>135°F)</option>
+                                                <option value="Cooking Temp Check">Internal Cooking Temp (>165°F)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Temperature Value (°F)</label>
+                                            <input type="number" step="0.1" id="tempDegrees" placeholder="e.g. 36.5" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm" />
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Logger Notes (optional)</label>
+                                            <input type="text" id="tempNotes" placeholder="Ice level correct, doors tightly sealed" class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm" />
+                                        </div>
+                                        <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-primary-600/10 transition-all text-sm">
+                                            Log Temperature Entry
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Temperature logs record history -->
+                            <div class="lg:col-span-2 space-y-4">
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div class="p-4 border-b border-slate-100 bg-slate-900 text-white flex justify-between items-center">
+                                        <h4 class="font-bold text-sm">Logged Temperature History (Today)</h4>
+                                        <span class="text-xs text-slate-400">Electronic Food Safety Records</span>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-left text-xs text-slate-600">
+                                            <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
+                                                <tr>
+                                                    <th class="p-4">Time Logged</th>
+                                                    <th class="p-4">Equipment</th>
+                                                    <th class="p-4">Logged Temp</th>
+                                                    <th class="p-4">Status</th>
+                                                    <th class="p-4">Staff Initials</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tempLogsTableBody" class="divide-y divide-slate-100">
+                                                <!-- Dynamic entries -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: PREVENTIVE MAINTENANCE -->
+                    <div id="tab-pm" class="tab-pane space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Preventive Maintenance Schedules</h3>
+                                <p class="text-xs text-slate-500">Maximize equipment lifespans. Never let regular cleaning or filter replacements slip through the cracks.</p>
+                            </div>
+                            <button onclick="openAddPMModal()" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-plus-circle"></i> Create PM Schedule
+                            </button>
+                        </div>
+
+                        <!-- Active PM Task Cards Grid -->
+                        <div id="pmTasksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Dynamic PM schedule cards -->
+                        </div>
+                    </div>
+
+                    <!-- TAB: REPAIRS & WORK ORDERS -->
+                    <div id="tab-repairs" class="tab-pane space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Work Orders & Repairs (CMMS)</h3>
+                                <p class="text-xs text-slate-500">Record, track, and dispatch repairs. Direct access to local commercial technicians.</p>
+                            </div>
+                            <button onclick="openAddWorkOrderModal()" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-file-invoice mr-1"></i> File New Work Order
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left: List of Active & Resolved Work Orders -->
+                            <div class="lg:col-span-2 space-y-4" id="workOrdersContainer">
+                                <!-- Dynamic work orders -->
+                            </div>
+
+                            <!-- Right: Contact Local Commercial Vendor Directory -->
+                            <div class="space-y-6">
+                                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                                    <div class="border-b border-slate-100 pb-3">
+                                        <h4 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                            <i class="fa-solid fa-phone-volume text-primary-600"></i> Local Vendor Directory
+                                        </h4>
+                                        <p class="text-[11px] text-slate-400 mt-0.5">Quick call local services from your workspace.</p>
+                                    </div>
+                                    <div class="space-y-3 divide-y divide-slate-100">
+                                        <div class="flex items-center justify-between pt-2">
+                                            <div>
+                                                <h5 class="text-xs font-bold text-slate-800">Commercial HVAC & Cooling</h5>
+                                                <p class="text-[10px] text-slate-400">Emergency cooling / Freezers</p>
+                                            </div>
+                                            <a href="tel:5550199" class="bg-primary-50 text-primary-700 hover:bg-primary-100 p-2 rounded-lg text-xs font-bold transition-all"><i class="fa-solid fa-phone"></i> Call</a>
+                                        </div>
+                                        <div class="flex items-center justify-between pt-3">
+                                            <div>
+                                                <h5 class="text-xs font-bold text-slate-800">Restaurant Fire & Safety Systems</h5>
+                                                <p class="text-[10px] text-slate-400">Inspections / Hood suppression</p>
+                                            </div>
+                                            <a href="tel:5550299" class="bg-primary-50 text-primary-700 hover:bg-primary-100 p-2 rounded-lg text-xs font-bold transition-all"><i class="fa-solid fa-phone"></i> Call</a>
+                                        </div>
+                                        <div class="flex items-center justify-between pt-3">
+                                            <div>
+                                                <h5 class="text-xs font-bold text-slate-800">Commercial Plumber & Drain Snake</h5>
+                                                <p class="text-[10px] text-slate-400">Grease traps & sinks</p>
+                                            </div>
+                                            <a href="tel:5550399" class="bg-primary-50 text-primary-700 hover:bg-primary-100 p-2 rounded-lg text-xs font-bold transition-all"><i class="fa-solid fa-phone"></i> Call</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: COMPLIANCE & CERTIFICATIONS -->
+                    <div id="tab-compliance" class="tab-pane space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Certifications & Document Permits</h3>
+                                <p class="text-xs text-slate-500">Track and monitor employee Food Handler Permits and property licenses to maintain perfect standing.</p>
+                            </div>
+                            <button onclick="openAddDocModal()" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-plus-circle"></i> Add Certification
+                            </button>
+                        </div>
+
+                        <!-- Compliance Documents Listing -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                                <h4 class="font-bold text-sm">Regulatory Permits & Food Handler Licenses</h4>
+                                <span class="text-xs text-slate-400">Audit Proof Tracking</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-4">Owner Name</th>
+                                            <th class="p-4">Document / License Type</th>
+                                            <th class="p-4">Expiration Date</th>
+                                            <th class="p-4">Status Status</th>
+                                            <th class="p-4 text-right">Management Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="complianceTableBody" class="divide-y divide-slate-100">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MODALS SYSTEM ================= -->
+    
+    <!-- Modal: Add New Location -->
+    <div id="modalAddLocation" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h4 class="font-bold text-slate-900 text-base">Add New Store Location</h4>
+                <button onclick="closeModal('modalAddLocation')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formAddLocation" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Location Name</label>
+                    <input type="text" id="newLocName" placeholder="e.g. Westside Diner" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modalAddLocation')" class="px-4 py-2 text-slate-500 hover:text-slate-700 text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl">Save Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Task Item -->
+    <div id="modalAddChecklist" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h4 class="font-bold text-slate-900 text-base">Create Checklist Task</h4>
+                <button onclick="closeModal('modalAddChecklist')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formAddChecklist" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Checklist Category</label>
+                    <select id="newChecklistCategory" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm">
+                        <option value="opening">Opening Shift Checklist</option>
+                        <option value="cleaning">Cleaning & Sanitization Tasks</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Task Description</label>
+                    <input type="text" id="newChecklistTitle" placeholder="e.g. Sanitize prep tables & cutting surfaces" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Assigned Role</label>
+                    <input type="text" id="newChecklistRole" placeholder="e.g. Line Cook / Hostess" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modalAddChecklist')" class="px-4 py-2 text-slate-500 hover:text-slate-700 text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Create PM Schedule -->
+    <div id="modalAddPM" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h4 class="font-bold text-slate-900 text-base">Schedule Preventive Maintenance</h4>
+                <button onclick="closeModal('modalAddPM')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formAddPM" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Maintenance Title</label>
+                    <input type="text" id="newPMTitle" placeholder="e.g. Replace HVAC Air Filters" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Recurrence Interval</label>
+                    <select id="newPMFrequency" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm">
+                        <option value="Weekly">Weekly Cycle</option>
+                        <option value="Bi-Weekly">Bi-Weekly Cycle</option>
+                        <option value="Monthly">Monthly Cycle</option>
+                        <option value="Quarterly">Quarterly Cycle</option>
+                        <option value="Semi-Annually">Semi-Annually Cycle</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Target Asset/Equipment</label>
+                    <input type="text" id="newPMAsset" placeholder="e.g. Main HVAC Unit / Manitowoc Ice Machine" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modalAddPM')" class="px-4 py-2 text-slate-500 hover:text-slate-700 text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl">Save Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: File New Work Order -->
+    <div id="modalAddWorkOrder" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h4 class="font-bold text-slate-900 text-base">File Repair Work Order</h4>
+                <button onclick="closeModal('modalAddWorkOrder')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formAddWorkOrder" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Broken Item / Issue Title</label>
+                    <input type="text" id="newWOTitle" placeholder="e.g. Walk-in Chiller Fan making load noise" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Priority Rating</label>
+                        <select id="newWOPriority" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm">
+                            <option value="High">High (Immediate)</option>
+                            <option value="Medium">Medium (Routine)</option>
+                            <option value="Low">Low (Convenience)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Target Vendor Service</label>
+                        <input type="text" id="newWOVendor" placeholder="e.g. Apex Mechanical" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Problem Description</label>
+                    <textarea id="newWODescription" placeholder="Describe the mechanical issue or breakdown details..." rows="3" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modalAddWorkOrder')" class="px-4 py-2 text-slate-500 hover:text-slate-700 text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl">File Work Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Compliance Doc -->
+    <div id="modalAddDoc" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h4 class="font-bold text-slate-900 text-base">Record Operational Permit</h4>
+                <button onclick="closeModal('modalAddDoc')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formAddDoc" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Card Holder / Permit Owner</label>
+                    <input type="text" id="newDocOwner" placeholder="e.g. John Doe / Restaurant License" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Document Type</label>
+                    <select id="newDocType" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm">
+                        <option value="Employee Food Card">Employee Food Handler Card</option>
+                        <option value="Health Permit">Local Health Permit</option>
+                        <option value="Fire Protection Certificate">Fire Safety Certification</option>
+                        <option value="Liquor License">Liquor Sales License</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Expiration Date</label>
+                    <input type="date" id="newDocExpiry" required class="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none text-sm" />
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modalAddDoc')" class="px-4 py-2 text-slate-500 hover:text-slate-700 text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2 rounded-xl">Log Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT & FIREBASE INTEGRATION ================= -->
+   <script src="app.js" type="module"></script>
+</body>
+</html>
