@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MaintainIQ - Keep Safe, Clean & Compliant</title>
+    <link rel="stylesheet" href="style.css">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -46,7 +47,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- QRCode Generation and Scanning Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body class="h-full font-sans antialiased text-slate-800">
 
@@ -104,7 +108,7 @@
                         </div>
                         <div class="flex items-start gap-3">
                             <div class="bg-primary-500/20 p-1 rounded-full text-primary-300 mt-1"><i class="fa-solid fa-circle-check text-sm"></i></div>
-                            <div><strong class="text-white block">Prevent unexpected breakdown costs</strong> <span class="text-primary-200 text-sm">Keep routine schedules on equipment at your fingertips</span></div>
+                            <div><strong class="text-white block">QR Code Asset Tagging</strong> <span class="text-primary-200 text-sm">Scan QR codes on hardware to perform logs instantly</span></div>
                         </div>
                         <div class="flex items-start gap-3">
                             <div class="bg-primary-500/20 p-1 rounded-full text-primary-300 mt-1"><i class="fa-solid fa-circle-check text-sm"></i></div>
@@ -177,9 +181,9 @@
             </div>
         </section>
 
-        <!-- ================= AUTH: CREATE ACCOUNT VIEW ================= -->
+        <!-- ================= STREAMING_CHUNK: AUTH: CREATE ACCOUNT VIEW ================= -->
         <section id="registerView" class="hidden min-h-screen flex flex-col md:flex-row bg-slate-50">
-            <!-- Left Panel (Graphic & Benefits) with updated deep-colored high-contrast background -->
+            <!-- Left Panel (Graphic & Benefits) -->
             <div class="hidden md:flex md:w-1/2 bg-gradient-to-tr from-primary-950 via-primary-900 to-primary-800 text-white p-16 flex-col justify-between relative overflow-hidden min-h-screen">
                 <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-primary-600/20 rounded-full blur-2xl"></div>
                 <div class="absolute -left-20 -top-20 w-80 h-80 bg-primary-500/10 rounded-full blur-3xl"></div>
@@ -187,7 +191,7 @@
                 <div class="flex items-center gap-3">
                     <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20 shadow-inner">
                         <svg class="h-8 w-8 text-primary-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
                         </svg>
                     </div>
                     <span class="text-2xl font-extrabold tracking-tight text-white">Maintain<span class="text-primary-400">IQ</span></span>
@@ -205,7 +209,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-circle-check text-primary-400 text-lg"></i> 
-                            <span class="text-white">No card details required during setup</span>
+                            <span class="text-white">Built-in QR code scanning for assets & compliance</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-circle-check text-primary-400 text-lg"></i> 
@@ -220,7 +224,7 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Core Registration Form with responsive min-height and viewport padding bottom -->
+            <!-- Right Panel: Core Registration Form with clean viewports -->
             <div class="w-full md:w-1/2 bg-slate-50 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-16 xl:px-20 min-h-screen">
                 <div class="md:hidden flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
                     <div class="flex items-center gap-2">
@@ -232,7 +236,7 @@
                     <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Create Account</span>
                 </div>
 
-                <!-- Registration Card Box with beautiful bottom spacing padding to avoid truncation -->
+                <!-- Registration Card Box with beautiful spacing and contrast -->
                 <div class="max-w-xl w-full mx-auto bg-white border border-slate-200 rounded-2xl shadow-xl p-6 sm:p-10 space-y-6 my-auto mb-8">
                     <div>
                         <h2 class="text-3xl font-black text-slate-900 tracking-tight">Create Account</h2>
@@ -331,7 +335,7 @@
             </div>
         </section>
 
-        <!-- ================= MAIN CORE: DASHBOARD WORKSPACE ================= -->
+        <!-- ================= STREAMING_CHUNK: MAIN CORE: DASHBOARD WORKSPACE ================= -->
         <main id="dashboardWorkspace" class="hidden h-full flex flex-col md:flex-row overflow-hidden">
             
             <!-- Left Navigation (Responsive Panel) -->
@@ -367,6 +371,9 @@
                 <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                     <a href="#" onclick="switchTab('home')" id="nav-home" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
                         <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard Home
+                    </a>
+                    <a href="#" onclick="switchTab('qr')" id="nav-qr" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i class="fa-solid fa-qrcode w-5 text-center text-primary-400"></i> QR Asset Tags
                     </a>
                     <a href="#" onclick="switchTab('checklists')" id="nav-checklists" class="sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/60 hover:text-white transition-all">
                         <i class="fa-solid fa-clipboard-list w-5 text-center"></i> Digital Checklists
@@ -420,7 +427,12 @@
 
                     <!-- Header Actions -->
                     <div class="flex items-center gap-4">
-                        <div id="liveIndicator" class="flex items-center gap-1.5 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+                        <!-- Live Scan Button -->
+                        <button onclick="switchTab('qr')" class="bg-primary-50 hover:bg-primary-100 text-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-primary-200">
+                            <i class="fa-solid fa-camera"></i> Scan QR Tag
+                        </button>
+
+                        <div id="liveIndicator" class="hidden sm:flex items-center gap-1.5 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
                             <span class="h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
                             <span class="text-[10px] text-teal-800 font-bold font-mono">LIVE CLOUD REPLICA</span>
                         </div>
@@ -429,11 +441,6 @@
                             <p id="currentLocalDate" class="font-semibold text-slate-700">July 11, 2026</p>
                             <p class="text-slate-400 text-[10px]">Operations Clock</p>
                         </div>
-
-                        <!-- Quick actions button -->
-                        <button onclick="triggerQuickAction()" class="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-150 flex items-center gap-1">
-                            <i class="fa-solid fa-plus-circle"></i> Quick Entry
-                        </button>
                     </div>
                 </header>
 
@@ -455,6 +462,7 @@
                         </div>
                         <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
                             <a href="#" onclick="switchTab('home')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Dashboard Home</a>
+                            <a href="#" onclick="switchTab('qr')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800"><i class="fa-solid fa-qrcode text-primary-400"></i> QR Asset Tags</a>
                             <a href="#" onclick="switchTab('checklists')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Digital Checklists</a>
                             <a href="#" onclick="switchTab('temps')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Food Safety Logs</a>
                             <a href="#" onclick="switchTab('pm')" class="mobile-sidebar-tab flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800">Preventive Maint.</a>
@@ -579,23 +587,23 @@
                                     <h3 class="text-base font-bold text-slate-900">Operations Shortcut</h3>
                                     <p class="text-xs text-slate-500">Record values directly during busy shifts.</p>
                                     
-                                    <button onclick="switchTab('temps')" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-100 hover:border-primary-200 transition-all text-left">
+                                    <button onclick="switchTab('qr')" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-100 hover:border-primary-200 transition-all text-left">
                                         <div class="flex items-center gap-3">
-                                            <div class="p-2 bg-primary-100 text-primary-700 rounded-lg text-sm"><i class="fa-solid fa-temperature-three-quarters"></i></div>
+                                            <div class="p-2 bg-primary-100 text-primary-700 rounded-lg text-sm"><i class="fa-solid fa-qrcode"></i></div>
                                             <div>
-                                                <span class="text-xs font-bold text-slate-800 block">Record Line Temperature</span>
-                                                <span class="text-[10px] text-slate-400">Walk-in or prep table temp checks</span>
+                                                <span class="text-xs font-bold text-slate-800 block">Scan QR Code Tag</span>
+                                                <span class="text-[10px] text-slate-400">Scan device stickers on line</span>
                                             </div>
                                         </div>
                                         <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                                     </button>
 
-                                    <button onclick="switchTab('repairs')" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-100 hover:border-primary-200 transition-all text-left">
+                                    <button onclick="switchTab('temps')" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-100 hover:border-primary-200 transition-all text-left">
                                         <div class="flex items-center gap-3">
-                                            <div class="p-2 bg-rose-100 text-rose-700 rounded-lg text-sm"><i class="fa-solid fa-hammer"></i></div>
+                                            <div class="p-2 bg-teal-100 text-teal-700 rounded-lg text-sm"><i class="fa-solid fa-temperature-three-quarters"></i></div>
                                             <div>
-                                                <span class="text-xs font-bold text-slate-800 block">File Work Order Ticket</span>
-                                                <span class="text-[10px] text-slate-400">Report broken hardware / cooling leaks</span>
+                                                <span class="text-xs font-bold text-slate-800 block">Record Line Temperature</span>
+                                                <span class="text-[10px] text-slate-400">Walk-in or prep table temp checks</span>
                                             </div>
                                         </div>
                                         <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
@@ -619,6 +627,83 @@
                             <button onclick="switchTab('compliance')" class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all">
                                 Update Certifications
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- ================= STREAMING_CHUNK: TAB: QR CODE SYSTEM ================= -->
+                    <div id="tab-qr" class="tab-pane space-y-6 hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">QR Asset Tagging & Scans</h3>
+                                <p class="text-xs text-slate-500">Scan commercial hardware stickers to execute instant temperature lines, PM completions, or file rapid work orders.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left panel: Live QR Scanner and Simulation Console -->
+                            <div class="lg:col-span-1 space-y-4">
+                                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-camera text-primary-600"></i> Active Camera Scanner
+                                    </h4>
+                                    
+                                    <!-- Scanning container -->
+                                    <div class="bg-slate-950 rounded-xl overflow-hidden relative aspect-video flex flex-col items-center justify-center border border-slate-800">
+                                        <div id="qr-reader" class="w-full h-full"></div>
+                                        <div id="qr-scan-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-slate-950/90 text-slate-400">
+                                            <i class="fa-solid fa-qrcode text-4xl text-primary-400 mb-2 animate-pulse"></i>
+                                            <span class="text-xs font-bold text-white mb-1">Camera Scanner Offline</span>
+                                            <span class="text-[10px] text-slate-500">Enable camera scan below to read device labels.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                        <button id="btnStartQr" onclick="startCameraScanner()" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all">
+                                            <i class="fa-solid fa-play mr-1"></i> Start Camera Stream
+                                        </button>
+                                        <button id="btnStopQr" onclick="stopCameraScanner()" class="w-full hidden bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all">
+                                            <i class="fa-solid fa-stop mr-1"></i> Stop Camera Stream
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Sandbox QR Simulation Tool (Saves testing from needing printed labels!) -->
+                                <div class="bg-teal-50 rounded-2xl p-5 border border-teal-200 shadow-sm space-y-3">
+                                    <h4 class="font-bold text-xs text-teal-900 uppercase tracking-wider flex items-center gap-1">
+                                        <i class="fa-solid fa-flask"></i> QR Tag Simulator Sandbox
+                                    </h4>
+                                    <p class="text-[11px] text-teal-800">No printed labels? Simulate scanning tags instantly by choosing an operational device from your cache:</p>
+                                    <div class="space-y-1">
+                                        <select id="qrSimulationSelector" class="w-full bg-white border border-teal-200 text-xs rounded-lg px-2.5 py-2 outline-none">
+                                            <option value="Walk-In Chiller">Walk-In Chiller (Asset Tag #109)</option>
+                                            <option value="Line Freezer">Line Freezer (Asset Tag #212)</option>
+                                            <option value="Manitowoc Ice System">Manitowoc Ice System (Asset Tag #405)</option>
+                                            <option value="Hood Exhaust Unit">Hood Exhaust Unit (Asset Tag #515)</option>
+                                            <option value="Central Drainage Trap">Central Drainage Trap (Asset Tag #680)</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="triggerQRSimulation()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-xl transition-all">
+                                        Simulate Scan Action <i class="fa-solid fa-wand-magic-sparkles ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Right panel: Listing generated device sticker tags -->
+                            <div class="lg:col-span-2 space-y-4">
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                                        <div>
+                                            <h4 class="font-bold text-sm">Active Equipment QR Stickers Catalog</h4>
+                                            <p class="text-[10px] text-slate-400">Generate, download, or print stickers to place directly on hardware.</p>
+                                        </div>
+                                        <span class="text-xs bg-slate-800 text-primary-400 px-2 py-0.5 rounded font-mono font-bold">READY</span>
+                                    </div>
+
+                                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4" id="qrAssetTagsGrid">
+                                        <!-- Dynamic printable sticker frames -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -692,7 +777,7 @@
                         </div>
                     </div>
 
-                    <!-- TAB: TEMPERATURE LOGS -->
+                    <!-- ================= STREAMING_CHUNK: TAB: TEMPERATURE LOGS ================= -->
                     <div id="tab-temps" class="tab-pane space-y-6 hidden">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
@@ -760,7 +845,7 @@
                         </div>
                     </div>
 
-                    <!-- TAB: PREVENTIVE MAINTENANCE -->
+                    <!-- ================= STREAMING_CHUNK: TAB: PREVENTIVE MAINTENANCE ================= -->
                     <div id="tab-pm" class="tab-pane space-y-6 hidden">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
@@ -875,8 +960,58 @@
         </main>
     </div>
 
-    <!-- ================= MODALS SYSTEM ================= -->
+    <!-- ================= STREAMING_CHUNK: MODALS SYSTEM ================= -->
     
+    <!-- Modal: Scan Results / QR Action Menu (Pops up when a QR tag is read) -->
+    <div id="modalQrScanAction" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-lg text-primary-400"></i>
+                    <h4 class="font-bold text-base">QR Code Identified</h4>
+                </div>
+                <button onclick="closeModal('modalQrScanAction')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-150 flex items-center gap-3">
+                    <div class="p-3 bg-primary-100 text-primary-700 rounded-xl text-lg">
+                        <i class="fa-solid fa-industry"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Scanned Equipment</span>
+                        <h4 id="qrScannedDeviceName" class="font-extrabold text-slate-900 text-lg">Unknown Equipment</h4>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-500 leading-relaxed">Choose an operational action to carry out for this logged asset:</p>
+
+                <div class="space-y-2">
+                    <button id="btnQrLogTemp" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-primary-50 rounded-xl border border-slate-200 hover:border-primary-300 transition-all text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-teal-100 text-teal-700 rounded-lg text-sm"><i class="fa-solid fa-temperature-three-quarters"></i></div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">Record Shift Temperature</span>
+                                <span class="text-[10px] text-slate-400">Instantly save cooling/holding registers.</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                    </button>
+
+                    <button id="btnQrCreateWO" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-rose-50 rounded-xl border border-slate-200 hover:border-rose-300 transition-all text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-rose-100 text-rose-700 rounded-lg text-sm"><i class="fa-solid fa-hammer"></i></div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">File Work Order Ticket</span>
+                                <span class="text-[10px] text-slate-400">Report broken hardware / cooling leaks.</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Add New Location -->
     <div id="modalAddLocation" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
@@ -1034,7 +1169,8 @@
     </div>
 
 
-    <!-- ================= JAVASCRIPT & FIREBASE INTEGRATION ================= -->
-   <script src="app.js" type="module"></script>
+    <!-- ================= STREAMING_CHUNK: JAVASCRIPT & FIREBASE INTEGRATION ================= -->
+    <script type="module" src="app.js">
+    </script>
 </body>
 </html>

@@ -28,7 +28,6 @@
         let activeTab = "home";
 
         // Dynamic Firebase Path helper to comply with environment Rule 1
-        // Path: /artifacts/{appId}/users/{userId}/{collectionName}
         const getArtifactPath = (collectionName) => {
             const appId = "default-app-id";
             return `artifacts/${appId}/users/${currentUserId}/${collectionName}`;
@@ -72,7 +71,6 @@
             }
         });
 
-        // Fetch locations and handle logic when no locations exist (seed default location)
         async function loadStoreLocations() {
             showLoading("Verifying Locations...", "Fetching active branches from database.");
             const locCollectionPath = getArtifactPath("locations");
@@ -177,7 +175,6 @@
             mobDest.value = activeLocationId;
         }
 
-        // Set up real-time onSnapshot synchronization for lists
         let unsubscribers = [];
         function initRealtimeDashboardListeners() {
             // Unsubscribe existing listeners to prevent leaks
@@ -217,6 +214,7 @@
                 const pms = [];
                 snapshot.forEach(doc => pms.push({ id: doc.id, ...doc.data() }));
                 renderPMTasks(pms);
+                renderQrStickers(pms); // Render visual barcode tags based on active equipment
             }, (error) => {
                 console.error("PM sync error: ", error);
             });
@@ -401,7 +399,6 @@
             tableBody.innerHTML = "";
 
             let warningEntries = 0;
-            // Sort by timestamp local memory filtering
             logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             logs.forEach(log => {
@@ -514,6 +511,185 @@
             }
         };
 
+        function renderQrStickers(tasks) {
+            const container = document.getElementById("qrAssetTagsGrid");
+            if (!container) return;
+
+            container.innerHTML = "";
+
+            if (tasks.length === 0) {
+                container.innerHTML = `<p class="col-span-full p-6 text-center text-slate-400">Create equipment in the Preventive Maintenance or temperature tab to generate QR sticker labels.</p>`;
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                const qrIdStr = `asset-qr-container-${index}`;
+                const stickerHtml = `
+                    <div class="bg-white rounded-xl border border-slate-300 p-4 shadow-sm flex flex-col items-center justify-between space-y-3 relative overflow-hidden bg-gradient-to-b from-white to-slate-50">
+                        <div class="w-full text-center border-b border-dashed border-slate-200 pb-2">
+                            <span class="text-[9px] font-extrabold text-primary-700 tracking-wider block uppercase">MaintainIQ Asset Sticker</span>
+                            <h4 class="text-xs font-black text-slate-800 truncate">${task.asset}</h4>
+                        </div>
+
+                        <!-- Target elements for dynamically generated QR Codes -->
+                        <div class="p-2 bg-white border border-slate-200 rounded-lg shadow-inner flex items-center justify-center">
+                            <div id="${qrIdStr}" class="w-24 h-24"></div>
+                        </div>
+
+                        <div class="text-center w-full">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase font-mono block">TAG ID: M-00${index+1}</span>
+                            <div class="mt-2 flex gap-1 justify-center">
+                                <button onclick="printStickerElement('${task.asset}')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-2.5 py-1 rounded transition-all">
+                                    <i class="fa-solid fa-print"></i> Print sticker
+                                </button>
+                                <button onclick="simulateQRScan('${task.asset}')" class="bg-primary-100 hover:bg-primary-200 text-primary-800 font-bold text-[10px] px-2.5 py-1 rounded transition-all">
+                                    <i class="fa-solid fa-expand"></i> Simulate scan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', stickerHtml);
+
+                // Use the library helper to construct actual QR pixels representing the JSON identifier
+                setTimeout(() => {
+                    const qrElem = document.getElementById(qrIdStr);
+                    if (qrElem) {
+                        qrElem.innerHTML = "";
+                        new QRCode(qrElem, {
+                            text: JSON.stringify({ type: "asset", asset: task.asset }),
+                            width: 96,
+                            height: 96,
+                            colorDark: "#0f172a",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    }
+                }, 100);
+            });
+        }
+
+        // Live Print Command Simulator
+        window.printStickerElement = function(assetName) {
+            showToast("Sticker Dispatch", `Sent print instruction for: ${assetName} to your standard barcode sticker printer.`, "info");
+        };
+
+        let html5QrScanner = null;
+
+        window.startCameraScanner = function() {
+            document.getElementById("qr-scan-placeholder").classList.add("hidden");
+            document.getElementById("btnStartQr").classList.add("hidden");
+            document.getElementById("btnStopQr").classList.remove("hidden");
+
+            html5QrScanner = new Html5Qrcode("qr-reader");
+            const config = { fps: 15, qrbox: { width: 150, height: 150 } };
+
+            html5QrScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    // Successful scan callback
+                    stopCameraScanner();
+                    processQrPayload(decodedText);
+                },
+                (errorMessage) => {
+                    // console.log("scanning stream searching...");
+                }
+            ).catch(err => {
+                console.error("Camera startup failed: ", err);
+                showToast("Camera Access Error", "Permissions rejected or device camera is currently unavailable. Use our Simulator sandbox on the left to verify this flow!", "error");
+                stopCameraScanner();
+            });
+        };
+
+        window.stopCameraScanner = function() {
+            document.getElementById("qr-scan-placeholder").classList.remove("hidden");
+            document.getElementById("btnStartQr").classList.remove("hidden");
+            document.getElementById("btnStopQr").classList.add("hidden");
+
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    html5QrScanner = null;
+                }).catch(err => {
+                    console.error("Failed to stop scanner cleanly.", err);
+                });
+            }
+        };
+
+        // Interpret QR Codes
+        function processQrPayload(payloadStr) {
+            try {
+                const parsed = JSON.parse(payloadStr);
+                if (parsed && parsed.type === "asset") {
+                    triggerActionMenuForAsset(parsed.asset);
+                } else {
+                    showToast("Unsupported Label", "This QR tag is not registered in the MaintainIQ ecosystem.", "error");
+                }
+            } catch (e) {
+                // If it is just plaintext asset, recover
+                if (payloadStr && payloadStr.trim().length > 0) {
+                    triggerActionMenuForAsset(payloadStr);
+                } else {
+                    showToast("Tag Error", "Invalid QR code read.", "error");
+                }
+            }
+        }
+
+        // Simulate scans from button actions
+        window.simulateQRScan = function(assetName) {
+            processQrPayload(JSON.stringify({ type: "asset", asset: assetName }));
+        };
+
+        window.triggerQRSimulation = function() {
+            const val = document.getElementById("qrSimulationSelector").value;
+            simulateQRScan(val);
+        };
+
+        // Modal triggers pre-filled with the scanned asset
+        function triggerActionMenuForAsset(assetName) {
+            document.getElementById("qrScannedDeviceName").innerText = assetName;
+            
+            // Re-route click logic
+            document.getElementById("btnQrLogTemp").onclick = () => {
+                closeModal('modalQrScanAction');
+                switchTab('temps');
+                
+                // Pre-fill equipment selector in log form
+                const select = document.getElementById("tempEquipment");
+                let matched = false;
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value.toLowerCase().includes(assetName.toLowerCase()) || 
+                        assetName.toLowerCase().includes(select.options[i].value.toLowerCase())) {
+                        select.selectedIndex = i;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    // Create an option dynamically if not present
+                    const opt = document.createElement("option");
+                    opt.value = assetName;
+                    opt.innerText = assetName;
+                    select.appendChild(opt);
+                    select.value = assetName;
+                }
+                document.getElementById("tempDegrees").focus();
+            };
+
+            document.getElementById("btnQrCreateWO").onclick = () => {
+                closeModal('modalQrScanAction');
+                switchTab('repairs');
+                openAddWorkOrderModal();
+                
+                // Pre-fill details
+                document.getElementById("newWOTitle").value = `${assetName} - Issue identified from QR scan`;
+                document.getElementById("newWODescription").value = `A field technician scanned the QR tag associated with this asset and noted...`;
+            };
+
+            document.getElementById("modalQrScanAction").classList.remove("hidden");
+        }
+
         function renderWorkOrders(wos) {
             const container = document.getElementById("workOrdersContainer");
             container.innerHTML = "";
@@ -624,8 +800,6 @@
             }
         };
 
-
-        // Switch view controller
         window.toggleAuthView = function(view) {
             document.getElementById("loginView").classList.add("hidden");
             document.getElementById("registerView").classList.add("hidden");
@@ -654,6 +828,11 @@
         window.switchTab = function(tabId) {
             activeTab = tabId;
             
+            // Clean scan instances if switching away
+            if (tabId !== "qr") {
+                stopCameraScanner();
+            }
+
             // Hide all panes
             const panes = document.querySelectorAll(".tab-pane");
             panes.forEach(pane => pane.classList.add("hidden"));
@@ -677,6 +856,7 @@
             // Update Header title
             const titles = {
                 'home': 'Dashboard Home',
+                'qr': 'QR Code Asset Management',
                 'checklists': 'Digital Operations Checklists',
                 'temps': 'Food Safety Temperature Log',
                 'pm': 'Preventive Maintenance Records',
@@ -698,7 +878,6 @@
             const selector = document.getElementById("locationSelector");
             const mobileSelector = document.getElementById("mobileLocationSelector");
             
-            // Sync selection across desktop/mobile dropdowns
             const selectedVal = selector.value || mobileSelector.value;
             if (!selectedVal) return;
 
@@ -771,14 +950,14 @@
             showLoading("Provisioning Space...", "Registering organization and seeding templates.");
 
             try {
-                // 1. Create Firebase Auth Credential using user's actual Email
+                // Create Firebase Auth Credential using user's actual Email
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const userObj = userCredential.user;
 
                 // Set profile display name
                 userObj.displayName = name;
 
-                // 2. Provision Custom Company Profile Document in Firestore
+                // Provision Custom Company Profile Document in Firestore
                 const userDocRef = doc(db, `users/${userObj.uid}`);
                 await setDoc(userDocRef, {
                     name: name,
@@ -788,7 +967,7 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // 3. Populate first active location to firestore collection
+                // Populate first active location to firestore collection
                 const locCollectionPath = getArtifactPath("locations");
                 const defaultLocRef = await addDoc(collection(db, locCollectionPath), {
                     name: "Main Restaurant Branch",
@@ -798,7 +977,7 @@
                 activeLocationId = defaultLocRef.id;
                 activeLocationName = "Main Restaurant Branch";
 
-                // 4. Concierge Seeding
+                // Concierge Seeding
                 await seedInitialOperationalTemplates(activeLocationId);
 
                 showToast("Trial Initiated", "Checklists automatically mapped for your location.", "success");
@@ -979,7 +1158,6 @@
             }
         });
 
-
         // Logout Execution
         window.handleLogout = function() {
             showLoading("Logging Out...", "Terminating shift authentication state.");
@@ -994,21 +1172,6 @@
         // Forgot password simulation
         window.showForgotPassword = function() {
             showToast("Password Recovery", "Please contact your group administrator to reset your registered device pincode/password.", "info");
-        };
-
-        // Quick active shortcut button
-        window.triggerQuickAction = function() {
-            if (activeTab === "checklists") {
-                openAddChecklistModal();
-            } else if (activeTab === "pm") {
-                openAddPMModal();
-            } else if (activeTab === "repairs") {
-                openAddWorkOrderModal();
-            } else if (activeTab === "compliance") {
-                openAddDocModal();
-            } else {
-                switchTab("temps");
-            }
         };
 
         // Modals Toggle logic
