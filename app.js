@@ -1,6 +1,6 @@
-        // Import Firebase SDK Modules
+  // Import Firebase SDK Modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, getDocs, onSnapshot, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // User's provided Firebase Configuration
@@ -22,6 +22,7 @@
         // Core App State Variables
         let currentUser = null;
         let currentUserId = null;
+        let currentUserRole = "staff"; // Defaults to staff until database record confirms 'admin'
         let activeLocationId = null;
         let activeLocationName = "";
         let locationsCache = [];
@@ -39,6 +40,13 @@
                 currentUser = user;
                 currentUserId = user.uid;
                 
+                // Fallback role handling for system admin login bypass
+                if (user.email === "admin@maintainiq.com") {
+                    currentUserRole = "admin";
+                } else {
+                    currentUserRole = "staff"; // Default
+                }
+
                 // Set initials on Sidebar
                 const userName = user.displayName || "Operator";
                 document.getElementById("sidebarUserName").innerText = userName;
@@ -47,17 +55,33 @@
                 const initials = userName.split(" ").map(n => n[0]).join("").substring(0,2).toUpperCase();
                 document.getElementById("sidebarUserInitials").innerText = initials;
 
-                // Sync basic metadata from user profile doc
+                // Sync custom user profile details & retrieve assigned Role
                 const userDocRef = doc(db, `users/${currentUserId}`);
                 try {
                     const userSnap = await getDoc(userDocRef);
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
-                        document.getElementById("sidebarUserCompany").innerText = userData.company || "Store Owner";
+                        document.getElementById("sidebarUserCompany").innerText = userData.company || "Store Operator";
+                        if (userData.role) {
+                            currentUserRole = userData.role;
+                        }
+                    } else {
+                        // Profile document not found (e.g. initial auto login admin), write profile
+                        await setDoc(userDocRef, {
+                            name: userName,
+                            email: user.email,
+                            role: currentUserRole,
+                            company: "Gourmet Kitchens",
+                            createdAt: new Date().toISOString()
+                        });
+                        document.getElementById("sidebarUserCompany").innerText = "Gourmet Kitchens";
                     }
                 } catch (e) {
-                    console.log("Profile sync complete without custom properties.");
+                    console.log("Profile sync fallback loaded successfully.", e);
                 }
+
+                // Apply role-based authorization styling on UI
+                applyRoleAccessControl();
 
                 // Hydrate Store Locations
                 await loadStoreLocations();
@@ -66,10 +90,36 @@
             } else {
                 currentUser = null;
                 currentUserId = null;
+                currentUserRole = "staff";
                 hideLoading();
                 showLogin();
             }
         });
+
+        function applyRoleAccessControl() {
+            const roleBadge = document.getElementById("roleIndicatorBadge");
+            if (currentUserRole === "admin") {
+                roleBadge.innerText = "ADMIN";
+                roleBadge.className = "text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded font-mono font-bold uppercase";
+                
+                // Enable admin layouts
+                document.getElementById("adminAddLocationBtn").classList.remove("hidden");
+                document.getElementById("adminAddChecklistBtn").classList.remove("hidden");
+                document.getElementById("adminCreatePMScheduleBtn").classList.remove("hidden");
+                document.getElementById("adminAddCertBtn").classList.remove("hidden");
+                document.getElementById("adminResetChecklistBtn").classList.remove("hidden");
+            } else {
+                roleBadge.innerText = "STAFF";
+                roleBadge.className = "text-[10px] bg-cyan-700 text-white px-2 py-0.5 rounded font-mono font-bold uppercase";
+                
+                // Disable/Hide management actions for regular staff
+                document.getElementById("adminAddLocationBtn").classList.add("hidden");
+                document.getElementById("adminAddChecklistBtn").classList.add("hidden");
+                document.getElementById("adminCreatePMScheduleBtn").classList.add("hidden");
+                document.getElementById("adminAddCertBtn").classList.add("hidden");
+                document.getElementById("adminResetChecklistBtn").classList.add("hidden");
+            }
+        }
 
         async function loadStoreLocations() {
             showLoading("Verifying Locations...", "Fetching active branches from database.");
@@ -83,7 +133,7 @@
                 });
 
                 if (locationsCache.length === 0) {
-                    // Seed a default location if brand new registration
+                    // Seed a default location if brand new registration space
                     const defaultLocRef = await addDoc(collection(db, locCollectionPath), {
                         name: "Main Downtown Diner",
                         createdAt: new Date().toISOString()
@@ -146,7 +196,7 @@
                 locationId: locationId
             });
 
-            // Seed 4: Compliance Docs
+            // Seed 4: Compliance Docs / Staff Members
             const docPath = getArtifactPath("complianceDocs");
             const initialDocs = [
                 { owner: "Sarah Jenkins (Lead Chef)", type: "Employee Food Card", expiry: "2026-10-15", status: "Active", locationId: locationId },
@@ -177,7 +227,7 @@
 
         let unsubscribers = [];
         function initRealtimeDashboardListeners() {
-            // Unsubscribe existing listeners to prevent leaks
+            // Unsubscribe existing listeners to prevent memory leaks
             unsubscribers.forEach(unsub => unsub());
             unsubscribers = [];
 
@@ -214,7 +264,6 @@
                 const pms = [];
                 snapshot.forEach(doc => pms.push({ id: doc.id, ...doc.data() }));
                 renderPMTasks(pms);
-                renderQrStickers(pms); // Render visual barcode tags based on active equipment
             }, (error) => {
                 console.error("PM sync error: ", error);
             });
@@ -231,12 +280,13 @@
             });
             unsubscribers.push(unsubWO);
 
-            // 5. Listen for Regulatory Documents
+            // 5. Listen for Regulatory Documents (Populates QR badges with staff details too)
             const qDocs = query(collection(db, getArtifactPath("complianceDocs")), where("locationId", "==", activeLocationId));
             const unsubDocs = onSnapshot(qDocs, (snapshot) => {
                 const docRecords = [];
                 snapshot.forEach(doc => docRecords.push({ id: doc.id, ...doc.data() }));
                 renderComplianceDocs(docRecords);
+                renderQrBadges(docRecords); // Render staff QR badges inside Details scanner tab
             }, (error) => {
                 console.error("Docs sync error: ", error);
             });
@@ -304,6 +354,13 @@
             let cleaningDone = 0;
 
             lists.forEach((item) => {
+                // Check if user has admin privileges to view the delete option
+                const deleteAction = (currentUserRole === "admin")
+                    ? `<button onclick="deleteChecklistItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 p-1 rounded transition-all text-xs">
+                           <i class="fa-solid fa-trash"></i>
+                       </button>`
+                    : "";
+
                 const element = `
                     <div class="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors group">
                         <div class="flex items-center gap-3">
@@ -316,9 +373,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-medium">${item.role}</span>
-                            <button onclick="deleteChecklistItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 p-1 rounded transition-all text-xs">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            ${deleteAction}
                         </div>
                     </div>
                 `;
@@ -363,8 +418,12 @@
             }
         };
 
-        // Delete from Firestore
+        // Delete from Firestore (Only accessible by admin rules)
         window.deleteChecklistItem = async function(id) {
+            if (currentUserRole !== "admin") {
+                showToast("Access Denied", "Authorized administrative access required.", "error");
+                return;
+            }
             try {
                 const docRef = doc(db, getArtifactPath("checklists"), id);
                 await deleteDoc(docRef);
@@ -374,8 +433,12 @@
             }
         };
 
-        // Reset checklist completed logs
+        // Reset checklist completed logs (Admin Only)
         window.resetChecklistData = async function() {
+            if (currentUserRole !== "admin") {
+                showToast("Access Denied", "Authorized administrative access required.", "error");
+                return;
+            }
             showLoading("Resetting...", "Flushing completion indicators for new shift.");
             const q = query(collection(db, getArtifactPath("checklists")), where("locationId", "==", activeLocationId));
             try {
@@ -511,39 +574,42 @@
             }
         };
 
-        function renderQrStickers(tasks) {
+        function renderQrBadges(docs) {
             const container = document.getElementById("qrAssetTagsGrid");
             if (!container) return;
 
             container.innerHTML = "";
 
-            if (tasks.length === 0) {
-                container.innerHTML = `<p class="col-span-full p-6 text-center text-slate-400">Create equipment in the Preventive Maintenance or temperature tab to generate QR sticker labels.</p>`;
+            // Filter out general health permits to only show staff members with Food cards
+            const staffList = docs.filter(d => d.type.includes("Card") || d.type.includes("Food") || d.owner.includes("("));
+
+            if (staffList.length === 0) {
+                container.innerHTML = `<p class="col-span-full p-6 text-center text-slate-400">Log employee cards in the "Certifications & Permits" tab to generate secure QR Badges here.</p>`;
                 return;
             }
 
-            tasks.forEach((task, index) => {
-                const qrIdStr = `asset-qr-container-${index}`;
+            staffList.forEach((staff, index) => {
+                const qrIdStr = `staff-qr-container-${index}`;
                 const stickerHtml = `
                     <div class="bg-white rounded-xl border border-slate-300 p-4 shadow-sm flex flex-col items-center justify-between space-y-3 relative overflow-hidden bg-gradient-to-b from-white to-slate-50">
                         <div class="w-full text-center border-b border-dashed border-slate-200 pb-2">
-                            <span class="text-[9px] font-extrabold text-primary-700 tracking-wider block uppercase">MaintainIQ Asset Sticker</span>
-                            <h4 class="text-xs font-black text-slate-800 truncate">${task.asset}</h4>
+                            <span class="text-[9px] font-extrabold text-teal-700 tracking-wider block uppercase">MaintainIQ Identity Badge</span>
+                            <h4 class="text-xs font-black text-slate-800 truncate">${staff.owner}</h4>
                         </div>
 
-                        <!-- Target elements for dynamically generated QR Codes -->
+                        <!-- Target elements for dynamically generated QR Codes containing User details -->
                         <div class="p-2 bg-white border border-slate-200 rounded-lg shadow-inner flex items-center justify-center">
                             <div id="${qrIdStr}" class="w-24 h-24"></div>
                         </div>
 
                         <div class="text-center w-full">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase font-mono block">TAG ID: M-00${index+1}</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase font-mono block">STAFF ID: ST-${100 + index}</span>
                             <div class="mt-2 flex gap-1 justify-center">
-                                <button onclick="printStickerElement('${task.asset}')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-2.5 py-1 rounded transition-all">
-                                    <i class="fa-solid fa-print"></i> Print sticker
+                                <button onclick="printStickerElement('${staff.owner}')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-2.5 py-1 rounded transition-all">
+                                    <i class="fa-solid fa-print"></i> Print Badge
                                 </button>
-                                <button onclick="simulateQRScan('${task.asset}')" class="bg-primary-100 hover:bg-primary-200 text-primary-800 font-bold text-[10px] px-2.5 py-1 rounded transition-all">
-                                    <i class="fa-solid fa-expand"></i> Simulate scan
+                                <button onclick="simulateQRScan('${staff.owner}', '${staff.type}', '${staff.expiry}')" class="bg-teal-100 hover:bg-teal-200 text-teal-800 font-bold text-[10px] px-2.5 py-1 rounded transition-all">
+                                    <i class="fa-solid fa-expand"></i> Simulate Audit
                                 </button>
                             </div>
                         </div>
@@ -552,13 +618,19 @@
 
                 container.insertAdjacentHTML('beforeend', stickerHtml);
 
-                // Use the library helper to construct actual QR pixels representing the JSON identifier
+                // Construct QR payload representing Staff User Details
                 setTimeout(() => {
                     const qrElem = document.getElementById(qrIdStr);
                     if (qrElem) {
                         qrElem.innerHTML = "";
+                        const payload = {
+                            type: "staff",
+                            name: staff.owner,
+                            permit: staff.type,
+                            expiry: staff.expiry
+                        };
                         new QRCode(qrElem, {
-                            text: JSON.stringify({ type: "asset", asset: task.asset }),
+                            text: JSON.stringify(payload),
                             width: 96,
                             height: 96,
                             colorDark: "#0f172a",
@@ -571,8 +643,8 @@
         }
 
         // Live Print Command Simulator
-        window.printStickerElement = function(assetName) {
-            showToast("Sticker Dispatch", `Sent print instruction for: ${assetName} to your standard barcode sticker printer.`, "info");
+        window.printStickerElement = function(ownerName) {
+            showToast("Badge Dispatch", `Sent print command for: ${ownerName}'s MaintainIQ Identity Card.`, "info");
         };
 
         let html5QrScanner = null;
@@ -594,11 +666,11 @@
                     processQrPayload(decodedText);
                 },
                 (errorMessage) => {
-                    // console.log("scanning stream searching...");
+                    // scanning logs search
                 }
             ).catch(err => {
                 console.error("Camera startup failed: ", err);
-                showToast("Camera Access Error", "Permissions rejected or device camera is currently unavailable. Use our Simulator sandbox on the left to verify this flow!", "error");
+                showToast("Camera Access Error", "Permissions rejected or camera is currently unavailable. Use our Staff Badge Simulator panel to test instantly!", "error");
                 stopCameraScanner();
             });
         };
@@ -617,19 +689,19 @@
             }
         };
 
-        // Interpret QR Codes
+        // Interpret Scanned QR Codes
         function processQrPayload(payloadStr) {
             try {
                 const parsed = JSON.parse(payloadStr);
-                if (parsed && parsed.type === "asset") {
-                    triggerActionMenuForAsset(parsed.asset);
+                if (parsed && parsed.type === "staff") {
+                    triggerActionMenuForStaff(parsed.name, parsed.permit, parsed.expiry);
                 } else {
-                    showToast("Unsupported Label", "This QR tag is not registered in the MaintainIQ ecosystem.", "error");
+                    showToast("Unsupported Label", "This QR tag is not registered in the MaintainIQ staff ecosystem.", "error");
                 }
             } catch (e) {
-                // If it is just plaintext asset, recover
+                // Recover plaintext parsed name
                 if (payloadStr && payloadStr.trim().length > 0) {
-                    triggerActionMenuForAsset(payloadStr);
+                    triggerActionMenuForStaff(payloadStr, "Employee Food Handler Card", "2026-12-31");
                 } else {
                     showToast("Tag Error", "Invalid QR code read.", "error");
                 }
@@ -637,55 +709,53 @@
         }
 
         // Simulate scans from button actions
-        window.simulateQRScan = function(assetName) {
-            processQrPayload(JSON.stringify({ type: "asset", asset: assetName }));
+        window.simulateQRScan = function(name, permit, expiry) {
+            const mockPayload = {
+                type: "staff",
+                name: name,
+                permit: permit,
+                expiry: expiry
+            };
+            processQrPayload(JSON.stringify(mockPayload));
         };
 
         window.triggerQRSimulation = function() {
             const val = document.getElementById("qrSimulationSelector").value;
-            simulateQRScan(val);
+            if (val === "Sarah Jenkins") {
+                simulateQRScan("Sarah Jenkins (Lead Chef)", "Employee Food Handler Card", "2026-10-15");
+            } else if (val === "Marcus Rodriguez") {
+                simulateQRScan("Marcus Rodriguez (Sous Chef)", "Employee Food Handler Card", "2026-08-01");
+            } else {
+                simulateQRScan("John Doe (Manager)", "Manager Protection License", "2027-01-20");
+            }
         };
 
-        // Modal triggers pre-filled with the scanned asset
-        function triggerActionMenuForAsset(assetName) {
-            document.getElementById("qrScannedDeviceName").innerText = assetName;
+        // Modal triggers pre-filled with scanned staff user details
+        function triggerActionMenuForStaff(name, permit, expiry) {
+            document.getElementById("qrScannedStaffName").innerText = name;
             
-            // Re-route click logic
-            document.getElementById("btnQrLogTemp").onclick = () => {
-                closeModal('modalQrScanAction');
-                switchTab('temps');
-                
-                // Pre-fill equipment selector in log form
-                const select = document.getElementById("tempEquipment");
-                let matched = false;
-                for (let i = 0; i < select.options.length; i++) {
-                    if (select.options[i].value.toLowerCase().includes(assetName.toLowerCase()) || 
-                        assetName.toLowerCase().includes(select.options[i].value.toLowerCase())) {
-                        select.selectedIndex = i;
-                        matched = true;
-                        break;
-                    }
-                }
-                if (!matched) {
-                    // Create an option dynamically if not present
-                    const opt = document.createElement("option");
-                    opt.value = assetName;
-                    opt.innerText = assetName;
-                    select.appendChild(opt);
-                    select.value = assetName;
-                }
-                document.getElementById("tempDegrees").focus();
-            };
+            // Deduce role from name strings
+            let role = "Staff Member";
+            if (name.toLowerCase().includes("chef")) role = "Kitchen Culinary Team";
+            if (name.toLowerCase().includes("sous")) role = "Kitchen Administration";
+            if (name.toLowerCase().includes("manager")) role = "Store Manager";
+            document.getElementById("qrScannedStaffRole").innerText = role;
 
-            document.getElementById("btnQrCreateWO").onclick = () => {
-                closeModal('modalQrScanAction');
-                switchTab('repairs');
-                openAddWorkOrderModal();
-                
-                // Pre-fill details
-                document.getElementById("newWOTitle").value = `${assetName} - Issue identified from QR scan`;
-                document.getElementById("newWODescription").value = `A field technician scanned the QR tag associated with this asset and noted...`;
-            };
+            document.getElementById("qrScannedPermitType").innerText = permit;
+            document.getElementById("qrScannedPermitExpiry").innerText = expiry;
+
+            // Compute status standing
+            const expiryDate = new Date(expiry);
+            const today = new Date();
+            const badge = document.getElementById("qrScannedStatusBadge");
+            
+            if (expiryDate < today) {
+                badge.innerText = "PERMIT EXPIRED - REMOVE FROM LINE";
+                badge.className = "bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase";
+            } else {
+                badge.innerText = "SECURED & STANDING";
+                badge.className = "bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase";
+            }
 
             document.getElementById("modalQrScanAction").classList.remove("hidden");
         }
@@ -705,6 +775,13 @@
                     ? `<span class="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded">HIGH PRIORITY</span>`
                     : `<span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded">ROUTINE</span>`;
 
+                // Render the close/resolve action based on user privilege levels (or simple staff support)
+                const actionBtn = isActive
+                    ? `<button onclick="resolveWorkOrder('${wo.id}')" class="text-primary-600 hover:text-primary-700 font-bold flex items-center gap-1">
+                           <i class="fa-solid fa-square-check"></i> Close Ticket
+                       </button>`
+                    : `<span class="text-slate-400"><i class="fa-solid fa-circle-check text-emerald-500"></i> Repaired</span>`;
+
                 const ticket = `
                     <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-3 relative overflow-hidden">
                         <div class="flex items-start justify-between">
@@ -722,13 +799,7 @@
                         <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">${wo.description}</p>
                         <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                             <span class="text-slate-400">Assigned Tech: <strong class="text-slate-600 font-semibold">${wo.vendor}</strong></span>
-                            ${isActive ? `
-                                <button onclick="resolveWorkOrder('${wo.id}')" class="text-primary-600 hover:text-primary-700 font-bold flex items-center gap-1">
-                                    <i class="fa-solid fa-square-check"></i> Close Ticket
-                                </button>
-                            ` : `
-                                <span class="text-slate-400"><i class="fa-solid fa-circle-check text-emerald-500"></i> Repaired</span>
-                            `}
+                            ${actionBtn}
                         </div>
                     </div>
                 `;
@@ -769,6 +840,13 @@
                     statusLabel = `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full text-[10px]">RENEW SOON (${diffDays}d)</span>`;
                 }
 
+                // Hide delete option for standard users
+                const deleteActionBtn = (currentUserRole === "admin")
+                    ? `<button onclick="deleteDocItem('${doc.id}')" class="text-xs text-slate-400 hover:text-rose-500 font-semibold transition-colors">
+                           <i class="fa-solid fa-trash-can mr-1"></i> Remove
+                       </button>`
+                    : `<span class="text-[10px] text-slate-400 font-semibold uppercase font-mono">Protected</span>`;
+
                 const row = `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-4 font-semibold text-slate-900">${doc.owner}</td>
@@ -776,9 +854,7 @@
                         <td class="p-4 font-mono font-bold text-slate-700">${doc.expiry}</td>
                         <td class="p-4">${statusLabel}</td>
                         <td class="p-4 text-right">
-                            <button onclick="deleteDocItem('${doc.id}')" class="text-xs text-slate-400 hover:text-rose-500 font-semibold transition-colors">
-                                <i class="fa-solid fa-trash-can mr-1"></i> Remove
-                            </button>
+                            ${deleteActionBtn}
                         </td>
                     </tr>
                 `;
@@ -791,6 +867,10 @@
         }
 
         window.deleteDocItem = async function(id) {
+            if (currentUserRole !== "admin") {
+                showToast("Access Denied", "Authorized administrative access required.", "error");
+                return;
+            }
             try {
                 const docRef = doc(db, getArtifactPath("complianceDocs"), id);
                 await deleteDoc(docRef);
@@ -856,7 +936,7 @@
             // Update Header title
             const titles = {
                 'home': 'Dashboard Home',
-                'qr': 'QR Code Asset Management',
+                'qr': 'User Details Scanner',
                 'checklists': 'Digital Operations Checklists',
                 'temps': 'Food Safety Temperature Log',
                 'pm': 'Preventive Maintenance Records',
@@ -898,7 +978,7 @@
             const identifier = document.getElementById("loginMobile").value.trim();
             const password = document.getElementById("loginPassword").value;
 
-            showLoading("Logging In...", "Validating credentials and authentication profile.");
+            showLoading("Logging In...", "Validating credentials and authorization profile.");
             
             let email = identifier;
             if (!identifier.includes("@")) {
@@ -915,6 +995,31 @@
                 await signInWithEmailAndPassword(auth, email, password);
                 showToast("Welcome Back!", "Operations successfully initiated.", "success");
             } catch (error) {
+                // If it is the default admin email attempt and fails, automatically register it to ease testing!
+                if (email === "admin@maintainiq.com") {
+                    try {
+                        showLoading("Provisioning Space...", "Registering default Master Admin space.");
+                        const cred = await createUserWithEmailAndPassword(auth, email, password);
+                        const userObj = cred.user;
+                        userObj.displayName = "Administrator";
+
+                        // Set custom profile with Admin permissions
+                        const userDocRef = doc(db, `users/${userObj.uid}`);
+                        await setDoc(userDocRef, {
+                            name: "Administrator",
+                            email: email,
+                            role: "admin",
+                            company: "MaintainIQ Corporate",
+                            createdAt: new Date().toISOString()
+                        });
+
+                        showToast("Admin Configured", "Default administrator account generated successfully.", "success");
+                        return;
+                    } catch (createErr) {
+                        console.error("Auto provision failed: ", createErr);
+                    }
+                }
+
                 hideLoading();
                 console.error(error);
                 let msg = "Incorrect username/email or password.";
@@ -930,6 +1035,7 @@
             const email = document.getElementById("regEmail").value.trim().toLowerCase();
             const confirmEmail = document.getElementById("regConfirmEmail").value.trim().toLowerCase();
             const mobile = document.getElementById("regMobile").value.trim();
+            const roleSelection = document.getElementById("regRole").value;
             const password = document.getElementById("regPassword").value;
             const confirmPassword = document.getElementById("regConfirmPassword").value;
 
@@ -962,6 +1068,7 @@
                 await setDoc(userDocRef, {
                     name: name,
                     email: email,
+                    role: roleSelection,
                     company: "Gourmet Kitchens",
                     mobile: phoneClean,
                     createdAt: new Date().toISOString()
